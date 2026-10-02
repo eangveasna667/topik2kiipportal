@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TOPIK · KIIP Portal</title>
+
+<!-- PDF libraries: ត្រូវការអ៊ីនធឺណិតដើម្បីដំណើរការ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+<style>
+:root{--navy:#173b68;--ink:#172033;--muted:#64748b;--line:#dbe3ed;--bg:#f3f6fa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,"Noto Sans Khmer",sans-serif}
+button,input,select,textarea{font:inherit}
+button,.button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:8px;padding:10px 15px;background:var(--navy);color:white;cursor:pointer;text-decoration:none}
+button.secondary{background:#e7edf5;color:var(--navy)}
+button:hover,.button:hover{filter:brightness(.95)}
+.shell{max-width:1100px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.brand{font-size:1.3rem;font-weight:750}
+.muted,small{color:var(--muted)}
+.controls,.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.langbox{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.langbox select{width:auto;min-width:145px}
+.langbox input{width:105px}
+.steps{display:flex;gap:8px;margin:18px 0}
+.steps button{flex:1;background:#fff;color:#334155;border:1px solid var(--line);padding:9px 6px}
+.steps button.active{background:var(--navy);color:white}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 4px 16px #193b630d}
+h1{font-size:1.4rem;margin:0 0 12px}
+h2{font-size:1.1rem;margin:22px 0 10px}
+p{margin:10px 0}
+.notice,.warning{padding:12px 14px;border-radius:8px;margin:14px 0;background:#eff6ff;color:#1e3a5f}
+.warning{background:#fff7e6;color:#795800}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+label{display:grid;gap:6px;font-weight:650;color:#334155}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px;background:white;color:var(--ink)}
+input[type=checkbox]{width:auto}
+.check{display:flex;align-items:flex-start;gap:9px;margin:14px 0}
+.check input{margin-top:5px}
+.upload{border:1px dashed #94a3b8;border-radius:10px;padding:14px;min-height:115px;align-content:start}
+.upload small{overflow-wrap:anywhere}
+.actions{justify-content:flex-end;margin-top:18px}
+.signature{display:block;width:100%;max-width:700px;height:145px;border:1px solid #cbd5e1;border-radius:8px;touch-action:none}
+.preview-scroll{overflow:auto;background:#e9eef5;padding:14px}
+.paper{width:794px;min-height:1123px;margin:auto;padding:48px;background:#fff;border:1px solid #cbd5e1;font-family:"Noto Serif KR","Batang",serif;color:#222}
+.paper h2{text-align:center;margin:28px 0}
+.paper table{width:100%;border-collapse:collapse;margin-top:20px}
+.paper th,.paper td{border:1px solid #555;padding:10px;text-align:left}
+.paper th{width:38%;background:#f7f7f7}
+.doc-warning{color:#a22;font-size:12px;text-align:center}
+.sig-preview{max-width:180px;max-height:65px;object-fit:contain}
+.pdf-viewer{display:none;width:100%;height:620px;margin-top:18px;border:1px solid var(--line)}
+.hide{display:none!important}
+@media(max-width:680px){
+ .shell{padding:12px}.panel{padding:15px}
+ .grid{grid-template-columns:1fr}
+ .steps{gap:4px}.steps button{font-size:.76rem}
+ .paper{margin-left:0}
+}
+</style>
+</head>
+
+<body>
+<main class="shell">
+<header>
+  <div>
+    <div class="brand" data-i18n="title">TOPIK · KIIP Link Portal</div>
+    <div class="muted" data-i18n="subtitle">Document preparation helper</div>
+  </div>
+
+  <div class="controls">
+    <div class="langbox">
+      <select id="languageSelect" aria-label="Choose language">
+        <option value="en">English</option>
+        <option value="km">ភាសាខ្មែរ</option>
+        <option value="ko">한국어</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="th">ไทย</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="id">Bahasa Indonesia</option>
+        <option value="ms">Bahasa Melayu</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="hi">हिन्दी</option>
+        <option value="bn">বাংলা</option>
+        <option value="ne">नेपाली</option>
+        <option value="ur">اردو</option>
+        <option value="fil">Filipino</option>
+      </select>
+      <input id="customLanguage" placeholder="Language code">
+      <button id="applyCustom" class="secondary" data-i18n="apply">Apply</button>
+    </div>
+    <button id="sampleBtn" class="secondary" data-i18n="sample">Load sample</button>
+  </div>
+</header>
+
+<div id="message" class="notice hide" role="status"></div>
+
+<div class="warning">
+  <span data-i18n="languageNote">
+    IP language detection is optional and may be inaccurate. If enabled, your IP is checked by an external service.
+  </span>
+  <label class="check">
+    <input id="ipConsent" type="checkbox">
+    <span data-i18n="ipConsent">I agree to optional IP-based language detection.</span>
+  </label>
+  <button id="detectIp" class="secondary" data-i18n="detectIp">Detect language by IP</button>
+  <button id="autoLanguage" class="secondary" data-i18n="autoLanguage">Use browser language</button>
+</div>
+
+<nav class="steps">
+  <button class="step-btn active" data-step="1" data-i18n="step1">1 · Documents</button>
+  <button class="step-btn" data-step="2" data-i18n="step2">2 · Details</button>
+  <button class="step-btn" data-step="3" data-i18n="step3">3 · PDF</button>
+  <button class="step-btn" data-step="4" data-i18n="step4">4 · Email</button>
+</nav>
+
+<!-- Step 1 -->
+<section class="panel step-panel" data-panel="1">
+  <h1 data-i18n="uploadTitle">1. Upload documents and enter address</h1>
+  <p class="muted" data-i18n="localNote">Files are handled in your browser unless you send them to an external service.</p>
+
+  <div class="grid">
+    <label class="upload">
+      <span data-i18n="arcFront">Alien Registration Card — Front</span>
+      <input id="arcFront" type="file" accept="image/*,.pdf">
+      <small id="arcFrontName">No file selected</small>
+    </label>
+    <label class="upload">
+      <span data-i18n="arcBack">Alien Registration Card — Back</span>
+      <input id="arcBack" type="file" accept="image/*,.pdf">
+      <small id="arcBackName">No file selected</small>
+    </label>
+    <label class="upload">
+      <span data-i18n="topik">TOPIK score certificate</span>
+      <input id="topik" type="file" accept="image/*,.pdf">
+      <small id="topikName">No file selected</small>
+    </label>
+    <label class="upload">
+      <span data-i18n="passport">Passport pages — select multiple</span>
+      <input id="passport" type="file" accept="image/*,.pdf" multiple>
+      <small id="passportName">No file selected</small>
+    </label>
+  </div>
+
+  <div class="grid">
+    <label><span data-i18n="address">Residential address</span>
+      <input id="address" placeholder="Enter your address">
+    </label>
+    <label><span data-i18n="office">Verified immigration office email</span>
+      <input id="officeEmail" type="email" placeholder="Enter only after checking an official source">
+    </label>
+  </div>
+
+  <div class="warning" data-i18n="officeWarning">
+    This demo does not look up addresses or verify immigration office jurisdictions. Check the recipient using an official source.
+  </div>
+
+  <div class="actions">
+    <button class="go-step" data-go="2" data-i18n="continue">Continue →</button>
+  </div>
+</section>
+
+<!-- Step 2 -->
+<section class="panel step-panel hide" data-panel="2">
+  <h1 data-i18n="detailsTitle">2. Review and edit details</h1>
+  <div class="warning" data-i18n="reviewWarning">
+    Check every detail against the original documents. OCR is not connected in this Blogger demo.
+  </div>
+
+  <div class="grid">
+    <label><span data-i18n="name">Full name (Latin)</span><input data-field="name"></label>
+    <label><span data-i18n="regNo">Alien registration number</span><input data-field="registrationNo" placeholder="YYMMDD-XXXXXXX"></label>
+    <label><span data-i18n="gender">Gender</span><input data-field="gender" placeholder="남 / 여"></label>
+    <label><span data-i18n="nationality">Nationality</span><input data-field="nationality"></label>
+    <label><span data-i18n="visa">Visa status</span><input data-field="visa" placeholder="e.g. E-9"></label>
+    <label><span data-i18n="round">TOPIK round</span><input data-field="topikRound"></label>
+    <label><span data-i18n="applicationNo">TOPIK application number</span><input data-field="applicationNo"></label>
+    <label><span data-i18n="testDate">TOPIK test date</span><input data-field="testDate"></label>
+    <label><span data-i18n="validity">Score validity period</span><input data-field="validity"></label>
+    <label><span data-i18n="level">TOPIK level</span><input data-field="level" placeholder="e.g. 2급"></label>
+    <label><span data-i18n="verification">Document verification number (16 digits)</span><input data-field="verification" maxlength="19"></label>
+    <label><span data-i18n="socinet">Socinet ID — never enter your password</span><input id="socinetId"></label>
+  </div>
+
+  <h2 data-i18n="signatureTitle">Digital signature</h2>
+  <canvas id="signature" class="signature" width="1000" height="220"></canvas>
+  <div class="actions">
+    <label class="secondary" style="display:inline-flex;align-items:center;cursor:pointer">
+      <span data-i18n="uploadSignature">Upload signature image</span>
+      <input id="signatureFile" type="file" accept="image/*" style="display:none">
+    </label>
+    <button id="clearSignature" class="secondary" data-i18n="clear">Clear signature</button>
+  </div>
+
+  <div class="actions">
+    <button class="secondary go-step" data-go="1" data-i18n="back">← Back</button>
+    <button class="go-step" data-go="3" data-i18n="continue">Continue →</button>
+  </div>
+</section>
+
+<!-- Step 3 -->
+<section class="panel step-panel hide" data-panel="3">
+  <h1 data-i18n="pdfTitle">3. Preview and create PDF</h1>
+  <div class="warning" data-i18n="notOfficial">
+    This is a working preview, not a verified reproduction of the official Ministry form. Compare it with the current official form before submitting.
+  </div>
+
+  <div class="preview-scroll">
+    <div id="applicationForm" class="paper">
+      <div class="doc-warning">WORKING PREVIEW — NOT AN OFFICIAL GOVERNMENT FORM</div>
+      <h2 data-i18n="formTitle">KIIP TOPIK Link Application — Details</h2>
+      <p data-i18n="formNote">Check all details against the latest official form.</p>
+      <table><tbody id="previewRows"></tbody></table>
+      <p><strong data-i18n="address">Residential address</strong>: <span id="previewAddress"></span></p>
+      <p><strong data-i18n="signatureTitle">Digital signature</strong>:</p>
+      <img id="signaturePreview" class="sig-preview" alt="Signature">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="singlePdf" data-i18n="singlePdf">Download application PDF</button>
+    <button id="packetPdf" data-i18n="packetPdf">Download merged packet PDF</button>
+  </div>
+  <iframe id="pdfViewer" class="pdf-viewer" title="PDF preview"></iframe>
+
+  <div class="actions">
+    <button class="secondary go-step" data-go="2" data-i18n="back">← Back</button>
+    <button class="go-step" data-go="4" data-i18n="continue">Continue →</button>
+  </div>
+</section>
+
+<!-- Step 4 -->
+<section class="panel step-panel hide" data-panel="4">
+  <h1 data-i18n="emailTitle">4. Prepare email</h1>
+  <div class="warning" data-i18n="emailWarning">
+    Review the recipient and message before sending. This page opens your email app; it does not send email itself.
+  </div>
+  <label><span data-i18n="to">Recipient email</span><input id="emailTo" type="email"></label>
+
+  <label class="check">
+    <input id="includeReg" type="checkbox">
+    <span data-i18n="includeReg">Include the full alien registration number in the email (sensitive information)</span>
+  </label>
+
+  <label><span data-i18n="subject">Subject</span><input id="emailSubject" readonly></label>
+  <label><span data-i18n="body">Message</span><textarea id="emailBody" rows="9" readonly></textarea></label>
+
+  <div class="actions">
+    <button id="copyBody" class="secondary" data-i18n="copyBody">Copy message</button>
+    <button id="copyEmail" class="secondary" data-i18n="copyEmail">Copy email</button>
+    <a id="mailtoLink" class="button" href="#" data-i18n="openEmail">Open email app</a>
+  </div>
+  <div class="actions"><button class="secondary go-step" data-go="3" data-i18n="back">← Back</button></div>
+</section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  /*
+    OPTIONAL:
+    ដាក់ URL ទៅ translation API របស់អ្នកនៅទីនេះ ប្រសិនបើមាន។
+    API ត្រូវទទួល {target:"fr", texts:[...]} ហើយត្រឡប់ {translations:[...]}។
+    កុំដាក់ API key ឬ Gemini key ក្នុងឯកសារ HTML នេះ។
+  */
+  const TRANSLATE_ENDPOINT = "";
+
+  const dictionaries = {
+    en: {
+      title:"TOPIK · KIIP Link Portal", subtitle:"Document preparation helper",
+      apply:"Apply", sample:"Load sample", languageNote:"IP language detection is optional and may be inaccurate. If enabled, your IP is checked by an external service.",
+      ipConsent:"I agree to optional IP-based language detection.", detectIp:"Detect language by IP",
+      autoLanguage:"Use browser language", step1:"1 · Documents", step2:"2 · Details",
+      step3:"3 · PDF", step4:"4 · Email", uploadTitle:"1. Upload documents and enter address",
+      localNote:"Files are handled in your browser unless you send them to an external service.",
+      arcFront:"Alien Registration Card — Front", arcBack:"Alien Registration Card — Back",
+      topik:"TOPIK score certificate", passport:"Passport pages — select multiple",
+      address:"Residential address", office:"Verified immigration office email",
+      officeWarning:"This demo does not look up addresses or verify immigration office jurisdictions. Check the recipient using an official source.",
+      continue:"Continue →", back:"← Back", detailsTitle:"2. Review and edit details",
+      reviewWarning:"Check every detail against the original documents. OCR is not connected in this Blogger demo.",
+      name:"Full name (Latin)", regNo:"Alien registration number", gender:"Gender",
+      nationality:"Nationality", visa:"Visa status", round:"TOPIK round",
+      applicationNo:"TOPIK application number", testDate:"TOPIK test date",
+      validity:"Score validity period", level:"TOPIK level",
+      verification:"Document verification number (16 digits)",
+      socinet:"Socinet ID — never enter your password", signatureTitle:"Digital signature",
+      uploadSignature:"Upload signature image", clear:"Clear signature",
+      pdfTitle:"3. Preview and create PDF",
+      notOfficial:"This is a working preview, not a verified reproduction of the official Ministry form. Compare it with the current official form before submitting.",
+      formTitle:"KIIP TOPIK Link Application — Details",
+      formNote:"Check all details against the latest official form.",
+      singlePdf:"Download application PDF", packetPdf:"Download merged packet PDF",
+      emailTitle:"4. Prepare email",
+      emailWarning:"Review the recipient and message before sending. This page opens your email app; it does not send email itself.",
+      to:"Recipient email", includeReg:"Include the full alien registration number in the email (sensitive information)",
+      subject:"Subject", body:"Message", copyBody:"Copy message", copyEmail:"Copy email",
+      openEmail:"Open email app", noFile:"No file selected",
+      langSaved:"Language preference saved.", englishFallback:"Translation is not configured for this language. Showing English.",
+      needConsent:"Please agree before using IP-based language detection.",
+      ipFailed:"Could not detect language from IP. English will be used if no other language is available.",
+      ipResult:"Language suggestion detected from your IP. You can still change it manually.",
+      sampleWarning:"Sample documents are synthetic. Do not submit them.",
+      copied:"Copied.", ocrManual:"OCR is not connected. Please enter details manually.",
+      emailGreeting:"Hello, I am submitting documents for a TOPIK link to the Korea Immigration and Integration Program.",
+      nameLabel:"Full name", regLabel:"Alien registration number", visaLabel:"Visa status",
+      topikLabel:"TOPIK level", socinetLabel:"Socinet ID", addressLabel:"Address",
+      attachmentNote:"Please check that the required files are attached. Thank you."
+    },
+    km: {
+      title:"TOPIK · KIIP 연េក 포털", subtitle:"ឧបករណ៍ជំនួយរៀបចំឯកសារ",
+      apply:"អនុវត្ត", sample:"បញ្ចូលឯកសារគំរូ", languageNote:"ការរកភាសាតាម IP ជាជម្រើស ហើយអាចមិនត្រឹមត្រូវ។ បើបើកប្រើ IP របស់អ្នកនឹងត្រូវបានពិនិត្យដោយសេវាខាងក្រៅ។",
+      ipConsent:"ខ្ញុំយល់ព្រមឱ្យប្រើ IP ដើម្បីប៉ាន់ស្មានភាសា។", detectIp:"រកភាសាតាម IP",
+      autoLanguage:"ប្រើភាសា Browser", step1:"១ · ឯកសារ", step2:"២ · ព័ត៌មាន",
+      step3:"៣ · PDF", step4:"៤ · អ៊ីមែល", uploadTitle:"១. បញ្ចូលឯកសារ និងអាសយដ្ឋាន",
+      localNote:"ឯកសារដំណើរការនៅក្នុង browser លុះត្រាតែអ្នកផ្ញើទៅសេវាខាងក្រៅ។",
+      arcFront:"បណ្ណជនបរទេស — មុខ", arcBack:"បណ្ណជនបរទេស — ក្រោយ",
+      topik:"វិញ្ញាបនបត្រពិន្ទុ TOPIK", passport:"ទំព័រលិខិតឆ្លងដែន — ជ្រើសបានច្រើន",
+      address:"អាសយដ្ឋានស្នាក់នៅ", office:"អ៊ីមែលការិយាល័យដែលបានផ្ទៀងផ្ទាត់",
+      officeWarning:"កំណែសាកល្បងនេះមិនស្វែងរកអាសយដ្ឋាន ឬកំណត់ការិយាល័យតាមតំបន់ទេ។ សូមផ្ទៀងផ្ទាត់អ្នកទទួលពីប្រភពផ្លូវការ។",
+      continue:"បន្ត →", back:"← ត្រឡប់", detailsTitle:"២. ពិនិត្យ និងកែព័ត៌មាន",
+      reviewWarning:"សូមផ្ទៀងផ្ទាត់ព័ត៌មានជាមួយឯកសារដើម។ កំណែ Blogger នេះមិនទាន់ភ្ជាប់ OCR ទេ។",
+      name:"ឈ្មោះពេញជាអក្សរឡាតាំង", regNo:"លេខចុះបញ្ជីជនបរទេស", gender:"ភេទ",
+      nationality:"សញ្ជាតិ", visa:"ប្រភេទទិដ្ឋាការ", round:"លេខលើកប្រឡង TOPIK",
+      applicationNo:"លេខដាក់ពាក្យ TOPIK", testDate:"ថ្ងៃប្រឡង TOPIK",
+      validity:"រយៈពេលសុពលភាពលទ្ធផល", level:"កម្រិត TOPIK",
+      verification:"លេខផ្ទៀងផ្ទាត់ឯកសារ (១៦ ខ្ទង់)",
+      socinet:"Socinet ID — កុំបញ្ចូលពាក្យសម្ងាត់", signatureTitle:"ហត្ថលេខាឌីជីថល",
+      uploadSignature:"បញ្ចូលរូបហត្ថលេខា", clear:"លុបហត្ថលេខា",
+      pdfTitle:"៣. មើលជាមុន និងបង្កើត PDF",
+      notOfficial:"នេះជាទម្រង់សាកល្បង មិនមែនជាការចម្លងទម្រង់ក្រសួងដែលបានផ្ទៀងផ្ទាត់ទេ។ សូមប្រៀបធៀបជាមួយទម្រង់ផ្លូវការថ្មីបំផុតមុនដាក់ពាក្យ។",
+      formTitle:"ព័ត៌មានពាក្យស្នើសុំភ្ជាប់ TOPIK ទៅ KIIP",
+      formNote:"សូមផ្ទៀងផ្ទាត់ព័ត៌មានជាមួយទម្រង់ផ្លូវការថ្មីបំផុត។",
+      singlePdf:"ទាញយក PDF ពាក្យស្នើសុំ", packetPdf:"ទាញយក PDF បញ្ចូលឯកសារទាំងអស់",
+      emailTitle:"៤. រៀបចំអ៊ីមែល",
+      emailWarning:"សូមពិនិត្យអ៊ីមែល និងខ្លឹមសារមុនផ្ញើ។ ទំព័រនេះគ្រាន់តែបើកកម្មវិធីអ៊ីមែល មិនផ្ញើជំនួសអ្នកទេ។",
+      to:"អ៊ីមែលអ្នកទទួល", includeReg:"បញ្ចូលលេខជនបរទេសពេញលេញក្នុងអ៊ីមែល (ព័ត៌មានរសើប)",
+      subject:"ប្រធានបទ", body:"ខ្លឹមសារ", copyBody:"ចម្លងខ្លឹមសារ", copyEmail:"ចម្លងអ៊ីមែល",
+      openEmail:"បើកកម្មវិធីអ៊ីមែល", noFile:"មិនទាន់បានជ្រើសឯកសារ",
+      langSaved:"បានរក្សាទុកភាសាដែលបានជ្រើស។", englishFallback:"មិនទាន់មានការបកប្រែភាសានេះទេ។ កំពុងបង្ហាញជាភាសាអង់គ្លេស។",
+      needConsent:"សូមយល់ព្រមមុនប្រើការរកភាសាតាម IP។",
+      ipFailed:"មិនអាចរកភាសាតាម IP បានទេ។ ប្រើ English ប្រសិនបើរកមិនឃើញភាសាផ្សេង។",
+      ipResult:"បានប៉ាន់ស្មានភាសាតាម IP។ អ្នកនៅតែអាចប្ដូរដោយដៃបាន។",
+      sampleWarning:"ឯកសារគំរូជាទិន្នន័យសិប្បនិម្មិត។ កុំប្រើសម្រាប់ដាក់ពាក្យពិត។",
+      copied:"បានចម្លង។", ocrManual:"មិនទាន់ភ្ជាប់ OCR ទេ។ សូមបញ្ចូលព័ត៌មានដោយដៃ។",
+      emailGreeting:"សូមគោរព ខ្ញុំសូមដាក់ឯកសារស្នើសុំភ្ជាប់លទ្ធផល TOPIK ទៅកម្មវិធីសមាហរណកម្មសង្គម។",
+      nameLabel:"ឈ្មោះ", regLabel:"លេខជនបរទេស", visaLabel:"ប្រភេទទិដ្ឋាការ",
+      topikLabel:"កម្រិត TOPIK", socinetLabel:"Socinet ID", addressLabel:"អាសយដ្ឋាន",
+      attachmentNote:"សូមពិនិត្យថាបានភ្ជាប់ឯកសារចាំបាច់រួចហើយ។ សូមអរគុណ។"
+    },
+    ko: {
+      title:"TOPIK · KIIP 연계 포털", subtitle:"서류 준비 지원 도구",
+      apply:"적용", sample:"샘플 문서 불러오기", languageNote:"IP 기반 언어 감지는 선택 사항이며 정확하지 않을 수 있습니다. 사용하면 외부 서비스가 IP를 확인합니다.",
+      ipConsent:"IP 기반 언어 감지에 동의합니다.", detectIp:"IP로 언어 감지",
+      autoLanguage:"브라우저 언어 사용", step1:"1 · 서류", step2:"2 · 정보",
+      step3:"3 · PDF", step4:"4 · 이메일", uploadTitle:"1. 서류 업로드 및 주소 입력",
+      localNote:"외부 서비스로 전송하지 않는 한 파일은 브라우저에서 처리됩니다.",
+      arcFront:"외국인등록증 — 앞면", arcBack:"외국인등록증 — 뒷면",
+      topik:"TOPIK 성적증명서", passport:"여권 페이지 — 여러 파일 선택 가능",
+      address:"거주지 주소", office:"확인된 출입국 사무소 이메일",
+      officeWarning:"이 데모는 주소 검색이나 관할 사무소 확인을 제공하지 않습니다. 공식 출처로 수신자를 확인하세요.",
+      continue:"다음 →", back:"← 이전", detailsTitle:"2. 정보 확인 및 수정",
+      reviewWarning:"모든 정보를 원본과 대조하세요. 이 Blogger 데모에는 OCR이 연결되어 있지 않습니다.",
+      name:"영문 성명", regNo:"외국인등록번호", gender:"성별", nationality:"국적",
+      visa:"체류자격", round:"TOPIK 회차", applicationNo:"TOPIK 수험번호",
+      testDate:"TOPIK 시험일", validity:"성적 유효기간", level:"TOPIK 등급",
+      verification:"문서확인번호 (16자리)", socinet:"Socinet ID — 비밀번호를 입력하지 마세요",
+      signatureTitle:"전자 서명", uploadSignature:"서명 이미지 업로드", clear:"서명 지우기",
+      pdfTitle:"3. 미리보기 및 PDF 만들기",
+      notOfficial:"작업용 미리보기이며 검증된 공식 서식 복제본이 아닙니다. 제출 전에 최신 공식 서식과 대조하세요.",
+      formTitle:"KIIP TOPIK 연계 신청 정보", formNote:"최신 공식 서식과 대조하세요.",
+      singlePdf:"신청서 PDF 다운로드", packetPdf:"전체 문서 PDF 다운로드",
+      emailTitle:"4. 이메일 작성",
+      emailWarning:"보내기 전에 수신자와 내용을 확인하세요. 이 페이지는 이메일 앱을 열 뿐 직접 발송하지 않습니다.",
+      to:"받는 사람 이메일", includeReg:"이메일에 외국인등록번호 전체 포함 (민감정보)",
+      subject:"제목", body:"내용", copyBody:"내용 복사", copyEmail:"이메일 복사",
+      openEmail:"이메일 앱 열기", noFile:"파일을 선택하지 않았습니다.",
+      langSaved:"언어 설정을 저장했습니다.", englishFallback:"이 언어 번역이 설정되지 않았습니다. 영어로 표시합니다.",
+      needConsent:"IP 언어 감지 전에 동의해 주세요.", ipFailed:"IP 언어 감지에 실패했습니다. 영어를 사용합니다.",
+      ipResult:"IP로 언어를 추정했습니다. 직접 변경할 수 있습니다.",
+      sampleWarning:"샘플 문서는 가상 자료입니다. 제출하지 마세요.", copied:"복사했습니다.",
+      ocrManual:"OCR이 연결되지 않았습니다. 정보를 직접 입력하세요.",
+      emailGreeting:"안녕하세요. 사회통합프로그램 TOPIK 연계 신청 서류를 제출합니다.",
+      nameLabel:"성명", regLabel:"외국인등록번호", visaLabel:"체류자격",
+      topikLabel:"TOPIK 등급", socinetLabel:"Socinet ID", addressLabel:"주소",
+      attachmentNote:"필요한 첨부파일을 추가했는지 확인해 주세요. 감사합니다."
+    }
+  };
+
+  const fields = [
+    ["name","name"],["registrationNo","regNo"],["gender","gender"],
+    ["nationality","nationality"],["visa","visa"],["topikRound","round"],
+    ["applicationNo","applicationNo"],["testDate","testDate"],
+    ["validity","validity"],["level","level"],["verification","verification"]
+  ];
+  const files = {arcFront:null,arcBack:null,topik:null,passports:[]};
+  let activeLanguage = "en", signatureData = "", drawing = false, pdfUrl = "";
+  const canvas = $("signature"), ctx = canvas.getContext("2d");
+
+  function showMessage(text,warning=false){
+    const box=$("message"); box.textContent=text; box.classList.remove("hide");
+    box.style.background=warning?"#fff7e6":"#eff6ff";
+    box.style.color=warning?"#795800":"#1e3a5f";
+  }
+
+  function canTranslate(code){
+    return !!dictionaries[code] || !!TRANSLATE_ENDPOINT;
+  }
+
+  async function setLanguage(code,save=false){
+    code=(code||"en").trim().toLowerCase();
+    const exact=dictionaries[code]?code:code.split("-")[0];
+    if(dictionaries[exact]){
+      activeLanguage=exact;
+      document.documentElement.lang=exact;
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const key=el.dataset.i18n;
+        el.textContent=dictionaries[exact][key] || dictionaries.en[key] || el.dataset.en || el.textContent;
+      });
+    } else if(TRANSLATE_ENDPOINT){
+      activeLanguage=code;
+      document.documentElement.lang=code;
+      const nodes=[...document.querySelectorAll("[data-i18n]")];
+      const texts=nodes.map(el=>el.dataset.en || el.textContent);
+      try{
+        const response=await fetch(TRANSLATE_ENDPOINT,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({target:code,texts})
+        });
+        const result=await response.json();
+        if(!Array.isArray(result.translations)) throw new Error("Bad translation response");
+        nodes.forEach((el,i)=>el.textContent=result.translations[i] || texts[i]);
+      }catch(e){
+        activeLanguage="en"; document.documentElement.lang="en";
+        applyDictionary("en");
+        showMessage(dictionaries.en.englishFallback,true);
+      }
+    } else {
+      activeLanguage="en"; document.documentElement.lang="en";
+      applyDictionary("en");
+      showMessage(dictionaries.en.englishFallback,true);
+      return;
+    }
+
+    $("languageSelect").value=dictionaries[activeLanguage]?activeLanguage:"en";
+    if(save){
+      localStorage.setItem("kiipManualLanguage",code);
+      showMessage((dictionaries[activeLanguage]||dictionaries.en).langSaved);
+    }
+    updatePreview(); updateEmail();
+  }
+
+  function applyDictionary(code){
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.dataset.i18n;
+      el.textContent=dictionaries[code][key] || dictionaries.en[key] || el.dataset.en || el.textContent;
+    });
+  }
+
+  // រក្សាទុកអត្ថបទដើម ដើម្បីបញ្ជូនទៅ translation endpoint ប្រសិនបើមាន។
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.dataset.en=el.textContent.trim());
+
+  $("languageSelect").addEventListener("change",e=>setLanguage(e.target.value,true));
+  $("applyCustom").addEventListener("click",()=>{
+    const code=$("customLanguage").value.trim();
+    if(!code){showMessage("Enter a language code, for example fr, es, ar.");return;}
+    setLanguage(code,true);
+  });
+
+  function getBrowserLanguage(){
+    const prefs=navigator.languages?.length?navigator.languages:[navigator.language||"en"];
+    for(const pref of prefs){
+      const code=pref.toLowerCase().split("-")[0];
+      if(dictionaries[code]||TRANSLATE_ENDPOINT) return code;
+    }
+    return "";
+  }
+
+  const countryLanguage={
+    KH:"km",KR:"ko",US:"en",GB:"en",AU:"en",NZ:"en",CA:"en",
+    FR:"fr",ES:"es",MX:"es",DE:"de",IT:"it",PT:"pt",BR:"pt",
+    JP:"ja",CN:"zh",TW:"zh",TH:"th",VN:"vi",ID:"id",MY:"ms",
+    IN:"hi",BD:"bn",NP:"ne",PK:"ur",PH:"fil",SA:"ar",AE:"ar",
+    EG:"ar",RU:"ru"
+  };
+
+  async function detectByIP(){
+    if(!$("ipConsent").checked){
+      showMessage(dictionaries[activeLanguage].needConsent,true); return;
+    }
+    localStorage.setItem("kiipIPConsent","yes");
+    try{
+      // ipapi.co receives the visitor IP; disclose this to users before enabling.
+      const response=await fetch("https://ipapi.co/json/");
+      if(!response.ok) throw new Error("IP lookup failed");
+      const info=await response.json();
+      let code="";
+      if(info.languages){
+        const candidates=String(info.languages).split(",").map(x=>x.trim().toLowerCase().split("-")[0]);
+        code=candidates.find(x=>dictionaries[x]||TRANSLATE_ENDPOINT)||"";
+      }
+      if(!code) code=countryLanguage[info.country_code]||"";
+      if(!code || !canTranslate(code)) throw new Error("No supported language");
+      await setLanguage(code,false);
+      showMessage(dictionaries[activeLanguage].ipResult);
+    }catch(e){
+      showMessage(dictionaries[activeLanguage].ipFailed,true);
+      await setLanguage("en",false);
+    }
+  }
+  $("detectIp").addEventListener("click",detectByIP);
+
+  $("ipConsent").checked=localStorage.getItem("kiipIPConsent")==="yes";
+  $("autoLanguage").addEventListener("click",async()=>{
+    const browser=getBrowserLanguage();
+    if(browser){await setLanguage(browser,false);return;}
+    if($("ipConsent").checked){await detectByIP();return;}
+    await setLanguage("en",false);
+  });
+
+  async function initialLanguage(){
+    const saved=localStorage.getItem("kiipManualLanguage");
+    if(saved && canTranslate(saved)){await setLanguage(saved,false);return;}
+    const browser=getBrowserLanguage();
+    if(browser){await setLanguage(browser,false);return;}
+    if($("ipConsent").checked){await detectByIP();return;}
+    await setLanguage("en",false);
+  }
+
+  function showStep(step){
+    document.querySelectorAll(".step-panel").forEach(p=>p.classList.toggle("hide",p.dataset.panel!==String(step)));
+    document.querySelectorAll(".step-btn").forEach(b=>b.classList.toggle("active",b.dataset.step===String(step)));
+    if(step==="3") updatePreview();
+    if(step==="4") updateEmail();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  document.querySelectorAll(".step-btn").forEach(b=>b.addEventListener("click",()=>showStep(b.dataset.step)));
+  document.querySelectorAll(".go-step").forEach(b=>b.addEventListener("click",()=>showStep(b.dataset.go)));
+
+  function bindFile(input,key,label,multiple=false){
+    $(input).addEventListener("change",e=>{
+      const selected=[...e.target.files||[]];
+      files[key]=multiple?selected:(selected[0]||null);
+      $(label).textContent=multiple
+        ? (selected.length?selected.map(f=>f.name).join(", "):dictionaries[activeLanguage].noFile)
+        : (files[key]?.name||dictionaries[activeLanguage].noFile);
+    });
+  }
+  bindFile("arcFront","arcFront","arcFrontName");
+  bindFile("arcBack","arcBack","arcBackName");
+  bindFile("topik","topik","topikName");
+  bindFile("passport","passports","passportName",true);
+
+  function readFields(){
+    const out={};
+    document.querySelectorAll("[data-field]").forEach(el=>out[el.dataset.field]=el.value.trim());
+    return out;
+  }
+  function updatePreview(){
+    const data=readFields(),d=dictionaries[activeLanguage]||dictionaries.en;
+    $("previewRows").innerHTML=fields.map(([key,labelKey])=>{
+      const label=d[labelKey]||dictionaries.en[labelKey]||labelKey;
+      return `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(data[key]||"")}</td></tr>`;
+    }).join("");
+    $("previewAddress").textContent=$("address").value;
+    $("signaturePreview").src=signatureData||"";
+    $("signaturePreview").style.display=signatureData?"block":"none";
+  }
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  document.querySelectorAll("[data-field]").forEach(el=>el.addEventListener("input",()=>{updatePreview();updateEmail();}));
+  $("address").addEventListener("input",()=>{updatePreview();updateEmail();});
+  $("socinetId").addEventListener("input",updateEmail);
+
+  // Signature: mouse និង touchscreen
+  ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#1e3a8a";
+  function point(e){
+    const r=canvas.getBoundingClientRect();
+    return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};
+  }
+  canvas.addEventListener("pointerdown",e=>{
+    canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);drawing=true;
+  });
+  canvas.addEventListener("pointermove",e=>{
+    if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();
+    signatureData=canvas.toDataURL("image/png");updatePreview();
+  });
+  ["pointerup","pointercancel"].forEach(name=>canvas.addEventListener(name,()=>{
+    drawing=false;signatureData=canvas.toDataURL("image/png");updatePreview();
+  }));
+  $("clearSignature").addEventListener("click",()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);signatureData="";
+    $("signatureFile").value="";updatePreview();
+  });
+  $("signatureFile").addEventListener("change",e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{signatureData=String(reader.result);updatePreview();};
+    reader.readAsDataURL(file);
+  });
+
+  function sampleFile(name,title,lines){
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650">
+      <rect width="100%" height="100%" fill="white" stroke="#222" stroke-width="8"/>
+      <text x="45" y="80" font-size="34" font-family="sans-serif">${title}</text>
+      <text x="45" y="135" font-size="26" fill="#b91c1c">SAMPLE — NOT OFFICIAL</text>
+      ${lines.map((x,i)=>`<text x="45" y="${220+i*65}" font-size="25">${x}</text>`).join("")}</svg>`;
+    return new File([svg],name,{type:"image/svg+xml"});
+  }
+  $("sampleBtn").addEventListener("click",()=>{
+    files.arcFront=sampleFile("sample-arc-front.svg","ARC FRONT",["SAMPLE APPLICANT","000000-0000000"]);
+    files.arcBack=sampleFile("sample-arc-back.svg","ARC BACK",["SAMPLE DATA ONLY","DO NOT SUBMIT"]);
+    files.topik=sampleFile("sample-topik.svg","TOPIK CERTIFICATE",["SAMPLE LEVEL","0000 0000 0000 0000"]);
+    $("arcFrontName").textContent=files.arcFront.name;
+    $("arcBackName").textContent=files.arcBack.name;
+    $("topikName").textContent=files.topik.name;
+    document.querySelector('[data-field="name"]').value="SAMPLE APPLICANT";
+    document.querySelector('[data-field="registrationNo"]').value="000000-0000000";
+    document.querySelector('[data-field="nationality"]').value="SAMPLE";
+    document.querySelector('[data-field="visa"]').value="SAMPLE";
+    document.querySelector('[data-field="level"]').value="2급";
+    document.querySelector('[data-field="verification"]').value="0000000000000000";
+    signatureData="data:image/svg+xml,"+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="90"><path d="M8 65 Q70 3 98 56 T190 42 T300 48" fill="none" stroke="#1e3a8a" stroke-width="5"/></svg>`
+    );
+    updatePreview();updateEmail();
+    showMessage(dictionaries[activeLanguage].sampleWarning,true);
+  });
+
+  async function makeFormPdf(){
+    if(!window.html2canvas||!window.PDFLib)throw new Error("PDF libraries unavailable. Check your internet connection.");
+    updatePreview();
+    const shot=await html2canvas($("applicationForm"),{scale:2,backgroundColor:"#fff",useCORS:true});
+    const pdf=await PDFLib.PDFDocument.create();
+    const page=pdf.addPage([595.28,841.89]);
+    const image=await pdf.embedPng(shot.toDataURL("image/png"));
+    page.drawImage(image,{x:0,y:0,width:page.getWidth(),height:page.getHeight()});
+    return pdf;
+  }
+  async function imagePng(file){
+    const data=await new Promise((resolve,reject)=>{
+      const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);
+    });
+    const img=await new Promise((resolve,reject)=>{
+      const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=data;
+    });
+    const c=document.createElement("canvas");c.width=img.naturalWidth;c.height=img.naturalHeight;
+    c.getContext("2d").drawImage(img,0,0);
+    const blob=await new Promise(resolve=>c.toBlob(resolve,"image/png"));
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+  function fitImage(page,image,x,y,w,h){
+    const s=Math.min(w/image.width,h/image.height),iw=image.width*s,ih=image.height*s;
+    page.drawImage(image,{x:x+(w-iw)/2,y:y+(h-ih)/2,width:iw,height:ih});
+  }
+  async function appendFile(pdf,file){
+    if(!file)return;
+    if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){
+      const src=await PDFLib.PDFDocument.load(await file.arrayBuffer());
+      const pages=await pdf.copyPages(src,src.getPageIndices());pages.forEach(p=>pdf.addPage(p));return;
+    }
+    const page=pdf.addPage([595.28,841.89]);
+    const image=await pdf.embedPng(await imagePng(file));
+    fitImage(page,image,30,30,page.getWidth()-60,page.getHeight()-60);
+  }
+  function downloadPdf(bytes,name){
+    const blob=new Blob([bytes],{type:"application/pdf"});
+    if(pdfUrl)URL.revokeObjectURL(pdfUrl);
+    pdfUrl=URL.createObjectURL(blob);
+    $("pdfViewer").src=pdfUrl;$("pdfViewer").style.display="block";
+    const a=document.createElement("a");a.href=pdfUrl;a.download=name;a.click();
+  }
+  $("singlePdf").addEventListener("click",async()=>{
+    try{downloadPdf(await (await makeFormPdf()).save(),"kiip-application-preview.pdf");}
+    catch(e){showMessage(e.message||"Could not create PDF.",true);}
+  });
+  $("packetPdf").addEventListener("click",async()=>{
+    try{
+      const pdf=await makeFormPdf();
+      if(files.topik)await appendFile(pdf,files.topik);
+      if(files.arcFront||files.arcBack){
+        const imageCards=[files.arcFront,files.arcBack];
+        if(imageCards.some(f=>f&&(f.type==="application/pdf"||f.name.toLowerCase().endsWith(".pdf")))){
+          for(const file of imageCards)if(file)await appendFile(pdf,file);
+        }else{
+          const page=pdf.addPage([595.28,841.89]);
+          for(const [i,file] of imageCards.entries()){
+            if(!file)continue;
+            const image=await pdf.embedPng(await imagePng(file));
+            fitImage(page,image,i===0?35:315,330,245,300);
+          }
+        }
+      }
+      for(const file of files.passports)await appendFile(pdf,file);
+      downloadPdf(await pdf.save(),"kiip-application-packet.pdf");
+    }catch(e){showMessage(e.message||"Could not merge PDF files.",true);}
+  });
+
+  function updateEmail(){
+    const data=readFields(),d=dictionaries[activeLanguage]||dictionaries.en;
+    const reg=$("includeReg").checked;
+    const subject=`[사회통합프로그램 TOPIK 연계 신청] ${data.name||"[이름]"}`;
+    const body=[
+      d.emailGreeting,
+      `${d.nameLabel}: ${data.name}`,
+      reg?`${d.regLabel}: ${data.registrationNo}`:"",
+      `${d.visaLabel}: ${data.visa}`,
+      `${d.topikLabel}: ${data.level}`,
+      `${d.socinetLabel}: ${$("socinetId").value}`,
+      `${d.addressLabel}: ${$("address").value}`,
+      "",
+      d.attachmentNote
+    ].filter(Boolean).join("\n");
+    $("emailSubject").value=subject;$("emailBody").value=body;
+    const to=$("emailTo").value.trim();
+    $("mailtoLink").href=to.includes("@")
+      ?`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      :"#";
+  }
+  $("officeEmail").addEventListener("input",()=>{$("emailTo").value=$("officeEmail").value;updateEmail();});
+  $("emailTo").addEventListener("input",updateEmail);
+  $("includeReg").addEventListener("change",updateEmail);
+
+  async function copyText(text){
+    try{await navigator.clipboard.writeText(text);showMessage(dictionaries[activeLanguage].copied);}
+    catch(e){showMessage("Clipboard unavailable. Please copy manually.",true);}
+  }
+  $("copyBody").addEventListener("click",()=>copyText($("emailBody").value));
+  $("copyEmail").addEventListener("click",()=>copyText($("emailTo").value));
+
+  updatePreview();updateEmail();initialLanguage();
+})();
+</script>
+</body>
+</html>
